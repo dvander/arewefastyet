@@ -2,6 +2,7 @@
 repos = /Users/mozilla/awfy/repos
 benchmarks = /Users/mozilla/awfy/benchmarks
 cpu = x64
+os = linux
 machine = 4
 updateURL = http://www.arewefastyet.com/????
 
