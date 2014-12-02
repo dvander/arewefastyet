@@ -136,7 +136,7 @@ class V8(Engine):
                         'args': None
                       }, {
                         'mode': 'v8-turbofan',
-                        'args': ['--turbo-filter=*', '--turbo-asm'] 
+                        'args': ['--turbo-asm'] 
                       }]
 
     def build(self):
