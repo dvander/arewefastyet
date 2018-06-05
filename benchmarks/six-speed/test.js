@@ -1,12 +1,32 @@
-
-function assertEqual() {}
-function test(fn) {
-    var its = iterations;
-    var start = Date.now();
-    for (var i = 0; i < its; i++) {
-        fn();
+function makeDoRun(source) {
+    // jsc shim
+    if (typeof runString === 'function') {
+        return function() {
+            let start = Date.now();
+            let globalObjectOfScript = runString(source);
+            return Date.now() - start;
+        };
     }
-    timing = Date.now() - start;
+
+    // spidermonkey shim
+    if (typeof newGlobal === 'function') {
+        return function() {
+            let start = Date.now();
+            let globalObjectOfScript = newGlobal();
+            globalObjectOfScript.eval(source);
+            return Date.now() - start;
+        }
+    }
+
+    // v8 shim
+    return function() {
+        let start = Date.now();
+        const realm = Realm.create();
+        Realm.eval(realm, source);
+        let timing = Date.now() - start;
+        Realm.dispose(realm);
+        return timing;
+    }
 }
 
 var tests = [
@@ -73,13 +93,29 @@ for (var z = 0; z < tests.length; z++) {
 
     // ES5
     var content = read("tests/"+testname+".es5")
-    var func = new Function(content);
-    func();
-    print(testname+"-es5:", timing);
+    var func = makeDoRun(`
+function assertEqual() {}
+function test(fn) {
+    var its = ${iterations};
+    for (var i = 0; i < its; i++) {
+        fn();
+    }
+}
+${content}
+`);
+    print(testname+"-es5:", func());
 
     // ES6
     var content = read("tests/"+testname+".es6")
-    var func = new Function(content);
-    func();
-    print(testname+"-es6:", timing);
+    var func = makeDoRun(`
+function assertEqual() {}
+function test(fn) {
+    var its = ${iterations};
+    for (var i = 0; i < its; i++) {
+        fn();
+    }
+}
+${content}
+`);
+    print(testname+"-es6:", func());
 }
